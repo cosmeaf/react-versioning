@@ -1,20 +1,24 @@
 const fs = require("fs");
+const path = require("path");
+
+const pkgPath = path.join(__dirname, "package.json");
+const pkg = require(pkgPath);
 
 const bumpVersion = (currentVersion, type) => {
   const parts = currentVersion.split(".").map((part) => parseInt(part));
 
   switch (type) {
     case "Fet":
-      parts[0] += 1; // Incrementa major
-      parts[1] = 0; // Reset minor
-      parts[2] = 0; // Reset patch
+      parts[0] += 1;
+      parts[1] = 0;
+      parts[2] = 0;
       break;
     case "Fix":
-      parts[1] += 1; // Incrementa minor
-      parts[2] = 0; // Reset patch
+      parts[1] += 1;
+      parts[2] = 0;
       break;
     case "Build":
-      parts[2] += 1; // Incrementa patch
+      parts[2] += 1;
       break;
   }
 
@@ -22,17 +26,15 @@ const bumpVersion = (currentVersion, type) => {
 };
 
 const main = () => {
-  const pkg = require("./package.json");
+  const commitMsgPath = path.join(__dirname, ".git/COMMIT_EDITMSG");
+  const commitMsg = fs.readFileSync(commitMsgPath, "utf8");
 
-  // Obtenha a última mensagem de commit
-  const lastCommitMsg = fs.readFileSync(".git/COMMIT_EDITMSG", "utf-8").trim();
-  const match = lastCommitMsg.match(/^(Fet|Fix|Build):/);
+  const match = commitMsg.match(/^(Fet|Fix|Build):/);
 
   if (match) {
     const newVersion = bumpVersion(pkg.version, match[1]);
     pkg.version = newVersion;
-
-    fs.writeFileSync("./package.json", JSON.stringify(pkg, null, 2));
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
   }
 };
 

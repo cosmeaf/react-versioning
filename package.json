@@ -40,7 +40,7 @@
   },
   "husky": {
     "hooks": {
-      "post-commit": "node versionBump.js"
+      "prepare-commit-msg": "node versionBump.js"
     }
   }
 }
