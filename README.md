@@ -1,70 +1,116 @@
-# Getting Started with Create React App
+React Versionamento Semântico Automático
+Este projeto facilita o versionamento semântico em projetos React. Ele utiliza um script Node.js e aliases do Git para automatizar o processo de incrementar versões com base no tipo de commit realizado.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Estrutura de Arquivos
+react-version/versionData.json: Armazena os números de versão atual para major, minor e patch.
+versionBump.js: Script para atualizar a versão com base no tipo de commit.
+Modo de Implementar
 
-## Available Scripts
+1. Configurar Arquivos
+   Dentro do diretório raiz do seu projeto React, crie uma pasta chamada react-version.
+   Dentro de react-version, crie um arquivo chamado versionData.json com o conteúdo:
 
-In the project directory, you can run:
+```
+{
+  "major": 0,
+  "minor": 0,
+  "patch": 0
+}
+```
 
-### `npm start`
+No diretório raiz, crie um arquivo chamado versionBump.js e adicione o seguinte script:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```
+const fs = require("fs");
+const { execSync } = require("child_process");
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+const versionDataPath = "./react-version/versionData.json";
+const pkgPath = "./package.json";
 
-### `npm test`
+const versionData = require(versionDataPath);
+const pkg = require(pkgPath);
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+const bumpVersion = (type) => {
+  switch (type) {
+    case "build":
+      versionData.major += 1;
+      versionData.minor = 0;
+      versionData.patch = 0;
+      break;
+    case "fet":
+      versionData.minor += 1;
+      versionData.patch = 0;
+      break;
+    case "fix":
+      versionData.patch += 1;
+      break;
+  }
 
-### `npm run build`
+  return `${versionData.major || 0}.${versionData.minor || 0}.${versionData.patch || 0}`;
+};
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+const main = () => {
+  if (pkg.scripts.start.includes("VERSION=true")) {
+    const commitMsg = execSync("git log -1 --pretty=%B").toString().trim();
+    const match = commitMsg.match(/^(build|fet|fix):/i);
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    if (match) {
+      const type = match[1].toLowerCase();
+      const newVersion = bumpVersion(type);
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+      pkg.version = newVersion;
 
-### `npm run eject`
+      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+      fs.writeFileSync(versionDataPath, JSON.stringify(versionData, null, 2) + "\n");
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+      console.log(`Version bumped to ${newVersion}`);
+    }
+  } else {
+    console.log("Versionamento desativado. Sem alterações.");
+  }
+};
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+main();
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+2. Configurar Aliases do Git
+   Abra seu terminal ou prompt de comando e execute o
 
-## Learn More
+```
+git config --global alias.fet '!f() { git commit -m "fet: $1"; node versionBump.js; }; f'
+git config --global alias.fix '!f() { git commit -m "fix: $1"; node versionBump.js; }; f'
+git config --global alias.build '!f() { git commit -m "build: $1"; node versionBump.js; }; f'
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Modo de Usar
+Ativar Versionamento no Projeto
+No seu package.json, adicione a seguinte linha ao seu script de start:
 
-### Code Splitting
+```
+"start": "BROWSER=none, VERSION=true react-scripts start"
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```
 
-### Analyzing the Bundle Size
+Fazer Commits e Versionar
+Agora, em vez de usar git commit -m "mensagem", use um dos seguintes comandos:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Para features (incrementa a versão minor):
 
-### Making a Progressive Web App
+```
+git fet "Descrição da nova funcionalidade"
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Para correções (incrementa a versão patch):
 
-### Advanced Configuration
+```
+git fix "Descrição da correção"
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
 
-### Deployment
+Para builds ou lançamentos maiores (incrementa a versão major):
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+git build "Descrição da nova versão ou mudança significativa"
+```
