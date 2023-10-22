@@ -23,7 +23,10 @@ const bumpVersion = (type) => {
       break;
   }
 
-  return `${versionData.major}.${versionData.minor}.${versionData.patch}`;
+  // Garanta que todas as propriedades existem e são números antes de retornar
+  return `${versionData.major || 0}.${versionData.minor || 0}.${
+    versionData.patch || 0
+  }`;
 };
 
 const main = () => {
