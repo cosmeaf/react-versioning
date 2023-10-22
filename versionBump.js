@@ -1,42 +1,45 @@
 const fs = require("fs");
 const { execSync } = require("child_process");
 
+const versionDataPath = "./react-version/versionData.json";
 const pkgPath = "./package.json";
+
+const versionData = require(versionDataPath);
 const pkg = require(pkgPath);
 
-const bumpVersion = (currentVersion, type) => {
-  const parts = currentVersion.split(".").map((part) => parseInt(part));
+const bumpVersion = (type) => {
+  versionData[type] += 1;
 
-  switch (type) {
-    case "Fet":
-      parts[0] += 1;
-      parts[1] = 0;
-      parts[2] = 0;
-      break;
-    case "Fix":
-      parts[1] += 1;
-      parts[2] = 0;
-      break;
-    case "Build":
-      parts[2] += 1;
-      break;
+  // Reset para seguir a semântica do versionamento
+  if (type === "fet") {
+    versionData.fix = 0;
+    versionData.build = 0;
+  } else if (type === "fix") {
+    versionData.build = 0;
   }
 
-  return parts.join(".");
+  return `${versionData.fet}.${versionData.fix}.${versionData.build}`;
 };
 
 const main = () => {
-  const commitMsg = execSync("git log -1 --pretty=%B").toString().trim();
+  if (process.env.VERSION) {
+    const commitMsg = execSync("git log -1 --pretty=%B").toString().trim();
+    const match = commitMsg.match(/^(Fet|Fix|Build):/i);
 
-  const match = commitMsg.match(/^(Fet|Fix|Build):/);
+    if (match) {
+      const type = match[1].toLowerCase();
+      const newVersion = bumpVersion(type);
 
-  if (match) {
-    const newVersion = bumpVersion(pkg.version, match[1]);
-    pkg.version = newVersion;
-    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
-    console.log(`Version bumped to ${newVersion}`);
-  } else {
-    console.log("Commit message doesn't match the pattern. No version bump.");
+      pkg.version = newVersion;
+
+      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+      fs.writeFileSync(
+        versionDataPath,
+        JSON.stringify(versionData, null, 2) + "\n"
+      );
+
+      console.log(`Version bumped to ${newVersion}`);
+    }
   }
 };
 
