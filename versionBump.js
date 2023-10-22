@@ -14,16 +14,15 @@ const bumpVersion = (type) => {
       versionData.minor = 0;
       versionData.patch = 0;
       break;
-    case "feature":
+    case "fet":
       versionData.minor += 1;
       versionData.patch = 0;
       break;
-    case "correcao":
+    case "fix":
       versionData.patch += 1;
       break;
   }
 
-  // Garanta que todas as propriedades existem e são números antes de retornar
   return `${versionData.major || 0}.${versionData.minor || 0}.${
     versionData.patch || 0
   }`;
@@ -32,7 +31,7 @@ const bumpVersion = (type) => {
 const main = () => {
   if (pkg.scripts.start.includes("VERSION=true")) {
     const commitMsg = execSync("git log -1 --pretty=%B").toString().trim();
-    const match = commitMsg.match(/^(build|feature|correcao):/i);
+    const match = commitMsg.match(/^(build|fet|fix):/i);
 
     if (match) {
       const type = match[1].toLowerCase();
