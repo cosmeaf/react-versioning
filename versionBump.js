@@ -10,7 +10,6 @@ const pkg = require(pkgPath);
 const bumpVersion = (type) => {
   versionData[type] += 1;
 
-  // Reset para seguir a semântica do versionamento
   if (type === "fet") {
     versionData.fix = 0;
     versionData.build = 0;
@@ -22,7 +21,7 @@ const bumpVersion = (type) => {
 };
 
 const main = () => {
-  if (process.env.VERSION) {
+  if (pkg.scripts.start.includes("VERSION=true")) {
     const commitMsg = execSync("git log -1 --pretty=%B").toString().trim();
     const match = commitMsg.match(/^(Fet|Fix|Build):/i);
 
@@ -40,6 +39,8 @@ const main = () => {
 
       console.log(`Version bumped to ${newVersion}`);
     }
+  } else {
+    console.log("Versionamento desativado. Sem alterações.");
   }
 };
 
