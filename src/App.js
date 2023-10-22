@@ -6,6 +6,7 @@ function App() {
       <p>git commit -m "Fet: Novo Recurso"</p>
       <p>git commit -m "Fix: Correçao"</p>
       <p>git commit -m "Build: Nova Versão"</p>
+      <p>MAIS UM</p>
     </div>
   );
 }
