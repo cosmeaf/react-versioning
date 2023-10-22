@@ -1,7 +1,7 @@
 const fs = require("fs");
-const path = require("path");
+const { execSync } = require("child_process");
 
-const pkgPath = path.join(__dirname, "package.json");
+const pkgPath = "./package.json";
 const pkg = require(pkgPath);
 
 const bumpVersion = (currentVersion, type) => {
@@ -26,8 +26,7 @@ const bumpVersion = (currentVersion, type) => {
 };
 
 const main = () => {
-  const commitMsgPath = path.join(__dirname, ".git/COMMIT_EDITMSG");
-  const commitMsg = fs.readFileSync(commitMsgPath, "utf8");
+  const commitMsg = execSync("git log -1 --pretty=%B").toString().trim();
 
   const match = commitMsg.match(/^(Fet|Fix|Build):/);
 
@@ -35,6 +34,9 @@ const main = () => {
     const newVersion = bumpVersion(pkg.version, match[1]);
     pkg.version = newVersion;
     fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+    console.log(`Version bumped to ${newVersion}`);
+  } else {
+    console.log("Commit message doesn't match the pattern. No version bump.");
   }
 };
 
