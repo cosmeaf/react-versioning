@@ -1,4 +1,5 @@
 React Versionamento Semântico Automático
+
 Este projeto facilita o versionamento semântico em projetos React. Ele utiliza um script Node.js e aliases do Git para automatizar o processo de incrementar versões com base no tipo de commit realizado.
 
 Estrutura de Arquivos
