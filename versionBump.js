@@ -8,22 +8,28 @@ const versionData = require(versionDataPath);
 const pkg = require(pkgPath);
 
 const bumpVersion = (type) => {
-  versionData[type] += 1;
-
-  if (type === "fet") {
-    versionData.fix = 0;
-    versionData.build = 0;
-  } else if (type === "fix") {
-    versionData.build = 0;
+  switch (type) {
+    case "build":
+      versionData.major += 1;
+      versionData.minor = 0;
+      versionData.patch = 0;
+      break;
+    case "feature":
+      versionData.minor += 1;
+      versionData.patch = 0;
+      break;
+    case "correcao":
+      versionData.patch += 1;
+      break;
   }
 
-  return `${versionData.fet}.${versionData.fix}.${versionData.build}`;
+  return `${versionData.major}.${versionData.minor}.${versionData.patch}`;
 };
 
 const main = () => {
   if (pkg.scripts.start.includes("VERSION=true")) {
     const commitMsg = execSync("git log -1 --pretty=%B").toString().trim();
-    const match = commitMsg.match(/^(Fet|Fix|Build):/i);
+    const match = commitMsg.match(/^(build|feature|correcao):/i);
 
     if (match) {
       const type = match[1].toLowerCase();
